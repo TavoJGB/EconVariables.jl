@@ -1,0 +1,10 @@
+# This file is machine-generated - editing it directly is not advised
+
+julia_version = "1.12.1"
+manifest_format = "2.0"
+project_hash = "ec1f0e52898f4c7adbfb6c9d02b85fb90ef5e4ba"
+
+[[deps.EconVariables]]
+path = "."
+uuid = "f1f4d348-8162-412b-9f52-fe17ce20fcd0"
+version = "1.0.0-DEV"
