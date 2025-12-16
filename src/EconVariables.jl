@@ -14,6 +14,8 @@ module EconVariables
         export DataFrequency, frequency, Annual, Quarterly, Monthly
         export DataSubject, subject, Household, Individual, Quantile
         export Currency, currency
+        export RealCurrency, NominalCurrency
+        export real_currency, nominal_currency
         export NominalEUR, NominalUSD
         export RealEUR, RealUSD
         export get_dates
@@ -23,5 +25,6 @@ module EconVariables
         export CPI, GoodType, AnyGood, ConsumptionGood, Housing
         export to_real, to_nominal, rebase
         export to_real!, to_nominal!, rebase!
+
 
 end
