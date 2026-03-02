@@ -6,6 +6,33 @@
 
 EconVariables.jl provides wrapper types around numeric vectors and scalars, allowing to combine them with economic metadata —such as data frequency, subject of analysis or currency— so that incompatible data cannot be silently combined.
 
+---
+
+## Table of Contents
+
+- [EconVariables.jl](#econvariablesjl)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Installation](#installation)
+    - [Dependencies](#dependencies)
+  - [Quick start](#quick-start)
+    - [EconVariable \& EconScalar](#econvariable--econscalar)
+    - [MonetaryVariable \& MonetaryScalar](#monetaryvariable--monetaryscalar)
+    - [Inflation adjustment with CPI](#inflation-adjustment-with-cpi)
+  - [Type hierarchy](#type-hierarchy)
+    - [Metadata types](#metadata-types)
+  - [API reference](#api-reference)
+    - [Constructors](#constructors)
+    - [Accessor functions](#accessor-functions)
+    - [Currency helpers](#currency-helpers)
+    - [Inflation functions](#inflation-functions)
+    - [Statistics (return `EconScalar` / `MonetaryScalar`)](#statistics-return-econscalar--monetaryscalar)
+  - [Running the tests](#running-the-tests)
+  - [License](#license)
+  - [Author](#author)
+
+---
+
 ## Features
 
 - **Econ types** — `EconVariable` / `EconScalar` carry frequency (e.g. `Annual`, `Quarterly`, `Monthly`) and subject (e.g. `Household`, `Individual`, `Quantile`) information.
