@@ -325,8 +325,9 @@ Base.:^(x::AbstractVector{<:Real}, v::Tev) where {Tev<:AbstractEconVariable} = T
 # Broadcasting support
 Base.BroadcastStyle(::Type{Tev}) where {Tev<:AbstractEconVariable} = Broadcast.ArrayStyle{Tev}()
 
-# similar
+# similar — only wrap result when ElType is numeric; otherwise fall back to plain Array
 function Base.similar(bc::Broadcast.Broadcasted{<:Broadcast.ArrayStyle{<:Tev}}, ::Type{ElType}, axes) where {ElType, Tev<:AbstractEconVariable}
+    ElType <: Union{Missing, Real} || return similar(Array{ElType}, axes)
     v = find_econvar(bc)
     return Tev.name.wrapper(similar(Array{ElType}, axes), characteristics(v)...)
 end
