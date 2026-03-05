@@ -252,8 +252,7 @@ Base.:+(v::Tev, x::Real) where {Tev<:AbstractEconVariable} = typeof(v).name.wrap
 Base.:+(x::Real, v::Tev) where {Tev<:AbstractEconVariable} = typeof(v).name.wrapper(x .+ v.data, characteristics(v)...)
 Base.:+(v::Tev, x::AbstractVector{<:Real}) where {Tev<:AbstractEconVariable} = typeof(v).name.wrapper(v.data .+ x, characteristics(v)...)
 Base.:+(x::AbstractVector{<:Real}, v::Tev) where {Tev<:AbstractEconVariable} = typeof(v).name.wrapper(x .+ v.data, characteristics(v)...)
-
-# Allow adding EconScalar to EconVariable
+# - Addition of EconScalar to EconVariable
 function Base.:+(v::Tev, s::Tes) where {Tev<:AbstractEconVariable, Tes<:AbstractEconScalar}
     assert_compatible(v, s)
     T = typeof(v).name.wrapper
@@ -270,7 +269,6 @@ Base.:-(v::Tev, x::Real) where {Tev<:AbstractEconVariable} = Tev.name.wrapper(v.
 Base.:-(x::Real, v::Tev) where {Tev<:AbstractEconVariable} = Tev.name.wrapper(x .- v.data, characteristics(v)...)
 Base.:-(v::Tev, x::AbstractVector{<:Real}) where {Tev<:AbstractEconVariable} = Tev.name.wrapper(v.data .- x, characteristics(v)...)
 Base.:-(x::AbstractVector{<:Real}, v::Tev) where {Tev<:AbstractEconVariable} = Tev.name.wrapper(x .- v.data, characteristics(v)...)
-
 function Base.:-(v::Tev, s::Tes) where {Tev<:AbstractEconVariable, Tes<:AbstractEconScalar}
     assert_compatible(v, s)
     T = typeof(v).name.wrapper
@@ -281,7 +279,6 @@ function Base.:-(s::Tes, v::Tev) where {Tev<:AbstractEconVariable, Tes<:Abstract
     T = typeof(v).name.wrapper
     return T(s.value .- v.data, characteristics(v)...)
 end
-
 # - Multiplication
 function Base.:*(v::Tev, w::Tev) where {Tev<:AbstractEconVariable}
     assert_compatible(v, w)
@@ -298,7 +295,6 @@ function Base.:*(v::Tev, s::Tes) where {Tev<:AbstractEconVariable, Tes<:Abstract
     return T(v.data .* s.value, characteristics(v)...)
 end
 Base.:*(s::AbstractEconScalar, v::AbstractEconVariable) = v * s
-
 # - Division
 function Base.:/(v::Tev, w::Tev) where {Tev<:AbstractEconVariable}
     assert_compatible(v, w)
@@ -316,7 +312,6 @@ function Base.:/(s::Tes, v::Tev) where {Tev<:AbstractEconVariable, Tes<:Abstract
     assert_compatible(v, s)
     return Tev.name.wrapper(s.value ./ v.data, characteristics(v)...)
 end
-
 # - Power
 function Base.:^(v::Tev, w::Tev) where {Tev<:AbstractEconVariable}
     assert_compatible(v, w)
@@ -361,6 +356,9 @@ EconStats.var(v::AbstractEconVariable) = EconScalar(var(v.data), characteristics
 EconStats.std(v::AbstractEconVariable) =  EconScalar(std(v.data), characteristics(v)...)
 EconStats.median(v::AbstractEconVariable) = EconScalar(median(v.data), characteristics(v)...)
 EconStats.quantile(v::AbstractEconVariable, p) = EconScalar(quantile(v.data, p), characteristics(v)...)
+
+# Other
+Base.skipmissing(v::Tev) where {Tev<:AbstractEconVariable} = Tev.name.wrapper(skipmissing(v.data), characteristics(v)...)
 
 # Allow conversion to regular Vector
 Base.Vector(v::AbstractEconVariable) = v.data
