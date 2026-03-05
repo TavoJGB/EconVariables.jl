@@ -179,12 +179,12 @@ characteristics(s::MonetaryScalar) = (frequency(s), subject(s), currency(s))
     Vector wrapper with economic metadata
 ==========================================================================#
 
-abstract type AbstractEconVariable{T<:Real, Tf<:DataFrequency, Ts<:DataSubject} <: AbstractVector{T} end
+abstract type AbstractEconVariable{T<:Union{Missing,Real}, Tf<:DataFrequency, Ts<:DataSubject} <: AbstractVector{T} end
 
-struct EconVariable{T<:Real, Tf<:DataFrequency, Ts<:DataSubject} <: AbstractEconVariable{T, Tf, Ts}
+struct EconVariable{T<:Union{Missing,Real}, Tf<:DataFrequency, Ts<:DataSubject} <: AbstractEconVariable{T, Tf, Ts}
     data::Vector{T}
     # Constructors
-    function EconVariable(data::Vector{T}, freq::F, subject::S) where {T<:Real, F<:DataFrequency, S<:DataSubject}
+    function EconVariable(data::Vector{T}, freq::F, subject::S) where {T<:Union{Missing,Real}, F<:DataFrequency, S<:DataSubject}
         return new{T, F, S}(data)
     end
 end
@@ -358,7 +358,7 @@ EconStats.median(v::AbstractEconVariable) = EconScalar(median(v.data), character
 EconStats.quantile(v::AbstractEconVariable, p) = EconScalar(quantile(v.data, p), characteristics(v)...)
 
 # Other
-Base.skipmissing(v::Tev) where {Tev<:AbstractEconVariable} = Tev.name.wrapper(skipmissing(v.data), characteristics(v)...)
+Base.skipmissing(v::Tev) where {Tev<:AbstractEconVariable} = Tev.name.wrapper(collect(skipmissing(v.data)), characteristics(v)...)
 
 # Allow conversion to regular Vector
 Base.Vector(v::AbstractEconVariable) = v.data
@@ -371,12 +371,12 @@ Base.convert(::Type{Vector{T}}, v::AbstractEconVariable) where T = convert(Vecto
     Vector wrapper with monetary metadata
 ==========================================================================#
 
-struct MonetaryVariable{T<:Real, Tf<:DataFrequency, Ts<:DataSubject} <: AbstractEconVariable{T, Tf, Ts}
+struct MonetaryVariable{T<:Union{Missing,Real}, Tf<:DataFrequency, Ts<:DataSubject} <: AbstractEconVariable{T, Tf, Ts}
     data::Vector{T}
     currency::Currency
     good::GoodType
     # Constructors
-    MonetaryVariable(data::Vector{T}, ::F, ::S, curr::Currency, good::GoodType=AnyGood()) where {T<:Real, F<:DataFrequency, S<:DataSubject} = new{T, F, S}(data, curr, good)
+    MonetaryVariable(data::Vector{T}, ::F, ::S, curr::Currency, good::GoodType=AnyGood()) where {T<:Union{Missing,Real}, F<:DataFrequency, S<:DataSubject} = new{T, F, S}(data, curr, good)
 end
 
 currency(v::MonetaryVariable) = v.currency

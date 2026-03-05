@@ -61,25 +61,25 @@ assert_compatible(mv::MonetaryVariable, cpi::CPI) = assert_compatible(cpi, mv.go
     HANDLING INFLATION: basic methods
 ==========================================================================#
 
-function to_real(v::AbstractVector{<:Real}, cpi::CPI, data_date, new_base_date::Date)
+function to_real(v::AbstractVector{<:Union{Missing,Real}}, cpi::CPI, data_date, new_base_date::Date)
     # Preparation
     ref_cpi = cpi_index(cpi, new_base_date)
     current_cpi = cpi_index(cpi, data_date)
     # Deflate
     return @. v * current_cpi / ref_cpi
 end
-to_real(v::AbstractVector{<:Real}, cpi::CPI, data_date, new_base_date) = to_real(v, cpi, data_date, Date(new_base_date))
+to_real(v::AbstractVector{<:Union{Missing,Real}}, cpi::CPI, data_date, new_base_date) = to_real(v, cpi, data_date, Date(new_base_date))
 
-function to_nominal(v::AbstractVector{<:Real}, cpi::CPI, base_date::Date, data_dates::AbstractVector{Date})
+function to_nominal(v::AbstractVector{<:Union{Missing,Real}}, cpi::CPI, base_date::Date, data_dates::AbstractVector{Date})
     # Preparation
     current_cpi = cpi_index(cpi, base_date)
     nominal_cpi = cpi_index(cpi, data_dates)
     # Inflate
     return @. v * current_cpi / nominal_cpi
 end
-to_nominal(v::AbstractVector{<:Real}, cpi::CPI, base_date, data_dates::AbstractVector{Date}) = to_nominal(v, cpi, Date(base_date), data_dates)
-to_nominal(v::AbstractVector{<:Real}, cpi::CPI, current_curr::RealCurrency, data_dates::AbstractVector{Date})=to_nominal(v, cpi, base_date(current_curr), data_dates)
-function rebase(v::AbstractVector{<:Real}, cpi::CPI, current_base_date::Date, new_base_date::Date)
+to_nominal(v::AbstractVector{<:Union{Missing,Real}}, cpi::CPI, base_date, data_dates::AbstractVector{Date}) = to_nominal(v, cpi, Date(base_date), data_dates)
+to_nominal(v::AbstractVector{<:Union{Missing,Real}}, cpi::CPI, current_curr::RealCurrency, data_dates::AbstractVector{Date})=to_nominal(v, cpi, base_date(current_curr), data_dates)
+function rebase(v::AbstractVector{<:Union{Missing,Real}}, cpi::CPI, current_base_date::Date, new_base_date::Date)
     # Preparation
     current_base_date==new_base_date && return v  # No change needed
     current_cpi = cpi_index(cpi, current_base_date)
@@ -87,7 +87,7 @@ function rebase(v::AbstractVector{<:Real}, cpi::CPI, current_base_date::Date, ne
     # Build nominal currency from real currency
     return @. v * new_cpi / current_cpi
 end
-rebase(v::AbstractVector{<:Real}, cpi::CPI, current_base_date, new_base_date) = rebase(v, cpi, Date(current_base_date), Date(new_base_date))
+rebase(v::AbstractVector{<:Union{Missing,Real}}, cpi::CPI, current_base_date, new_base_date) = rebase(v, cpi, Date(current_base_date), Date(new_base_date))
 
 
 
