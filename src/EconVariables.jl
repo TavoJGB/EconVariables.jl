@@ -19,7 +19,6 @@ module EconVariables
         export NominalEUR, NominalUSD
         export RealEUR, RealUSD
         export get_dates, base_date
-        export monetary_variable!
         # export TenureStatus, Owner, Renter, NoTenure
     include(joinpath(BASE_FOLDER, "src", "dep", "inflation.jl"))
         export CPI, GoodType, AnyGood, ConsumptionGood, Housing

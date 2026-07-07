@@ -5,7 +5,7 @@ using EconStats
 using EconVariables
 import EconVariables: base_date, get_good
 import EconVariables: RealCurrency, NominalCurrency
-import EconVariables: validate_cpis_unique, build_cpi_dict, monetary_variable!
+import EconVariables: validate_cpis_unique, build_cpi_dict
 import EconVariables: cpi_index
 
 # Include test modules
