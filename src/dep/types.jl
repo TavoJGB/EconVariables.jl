@@ -220,6 +220,7 @@ Base.length(v::AbstractEconVariable) = length(v.data)
 # Iteration
 Base.iterate(v::AbstractEconVariable) = iterate(v.data)
 Base.iterate(v::AbstractEconVariable, state) = iterate(v.data, state)
+Base.deleteat!(v::AbstractEconVariable, inds) = (deleteat!(v.data, inds); v)
 # Equality
 Base.:(==)(v::AbstractEconVariable, w::AbstractEconVariable) = (v.data == w.data) && (typeof(v) == typeof(w))
 Base.isequal(v::AbstractEconVariable, w::AbstractEconVariable) = isequal(v.data, w.data) && (typeof(v) == typeof(w))
@@ -323,26 +324,26 @@ Base.:^(v::Tev, x::AbstractVector{<:Real}) where {Tev<:AbstractEconVariable} = T
 Base.:^(x::AbstractVector{<:Real}, v::Tev) where {Tev<:AbstractEconVariable} = Tev.name.wrapper(x .^ v.data, characteristics(v)...)
 
 # Broadcasting support
-Base.BroadcastStyle(::Type{Tev}) where {Tev<:AbstractEconVariable} = Broadcast.ArrayStyle{Tev}()
+Base.BroadcastStyle(::Type{<:AbstractEconVariable}) = Broadcast.ArrayStyle{AbstractEconVariable}()
+Base.BroadcastStyle(::Broadcast.ArrayStyle{<:AbstractEconVariable}, ::Broadcast.ArrayStyle{<:AbstractEconVariable}) = Broadcast.ArrayStyle{AbstractEconVariable}()
 
 # similar — only wrap result when ElType is numeric; otherwise fall back to plain Array
-function Base.similar(bc::Broadcast.Broadcasted{<:Broadcast.ArrayStyle{<:Tev}}, ::Type{ElType}, axes) where {ElType, Tev<:AbstractEconVariable}
+function Base.similar(bc::Broadcast.Broadcasted{<:Broadcast.ArrayStyle{<:AbstractEconVariable}}, ::Type{ElType}, axes) where {ElType}
     ElType <: Union{Missing, Real} || return similar(Array{ElType}, axes)
     v = find_econvar(bc)
-    return Tev.name.wrapper(similar(Array{ElType}, axes), characteristics(v)...)
+    v === nothing && return similar(Array{ElType}, axes)
+    return typeof(v).name.wrapper(similar(Array{ElType}, axes), characteristics(v)...)
 end
 Base.similar(bc::Broadcast.Broadcasted{<:Broadcast.ArrayStyle{<:AbstractEconVariable}}, ::Type{ElType}) where {ElType} = similar(bc, ElType, axes(bc))
 
 # Helper function to find an EconVariable in Broadcasted args
+find_econvar(v::AbstractEconVariable) = v
+find_econvar(arg::Base.Broadcast.Extruded) = find_econvar(arg.x)
 function find_econvar(bc::Base.Broadcast.Broadcasted)
     for arg in bc.args
-        if arg isa AbstractEconVariable
-            return arg
-        elseif arg isa Base.Broadcast.Broadcasted
-            v = find_econvar(arg)
-            if !isnothing(v)
-                return v
-            end
+        v = find_econvar(arg)
+        if !isnothing(v)
+            return v
         end
     end
     return nothing

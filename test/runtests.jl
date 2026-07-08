@@ -41,6 +41,7 @@ struct OtherGood <: EconVariables.SomeGood end
     @testset "MonetaryVariable Tests" begin
         test_monetaryvariable_construction()
         test_monetaryvariable_arithmetic()
+        test_monetaryvariable_deleteat!()
         test_monetaryvariable_broadcasting()
         test_monetaryvariable_statistics()
         test_monetaryvariable_currency()

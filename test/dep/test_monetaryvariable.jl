@@ -44,9 +44,23 @@ function test_monetaryvariable_arithmetic()
     end
 end
 
+function test_monetaryvariable_deleteat!()
+    @testset "MonetaryVariable deleteat!" begin
+        v = MonetaryVariable([10.0, 20.0, 30.0, 40.0], Annual(), Household(), NominalUSD())
+        deleteat!(v, BitVector([false, true, false, true]))
+        @test v.data == [10.0, 30.0]
+        @test v isa MonetaryVariable
+        @test currency(v) isa NominalUSD
+    end
+end
+
 function test_monetaryvariable_broadcasting()
     @testset "MonetaryVariable Broadcasting" begin
         v = MonetaryVariable([100.0, 200.0, 300.0], Annual(), Household(), NominalUSD())
+        v_real = MonetaryVariable(Real[100, 200, 300], Annual(), Household(), NominalUSD())
+        v_mixed = MonetaryVariable([100.0, 200.0, 300.0], Annual(), Household(), NominalUSD())
+        h_val = MonetaryVariable(Real[20, 30, 40], Annual(), Household(), NominalUSD())
+        mortgage = MonetaryVariable(Real[5, 10, 15], Annual(), Household(), NominalUSD())
         
         # Broadcasting with scalars
         v2 = v .* 1.5
@@ -60,6 +74,16 @@ function test_monetaryvariable_broadcasting()
         # Broadcasting with vectors
         v4 = v .* [1, 2, 3]
         @test v4.data == [100.0, 400.0, 900.0]
+
+        # Nested broadcast with AbstractArray-typed monetary data
+        v5 = @. v_real - (v_real - 10)
+        @test v5 isa MonetaryVariable
+        @test v5.data == [10, 10, 10]
+
+        # Mixed concrete eltypes should still preserve MonetaryVariable
+        v6 = @. v_mixed - (h_val - mortgage)
+        @test v6 isa MonetaryVariable
+        @test v6.data == [85.0, 180.0, 275.0]
     end
 end
 
