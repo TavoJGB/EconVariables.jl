@@ -11,7 +11,7 @@ module EconVariables
         export EconVariable, EconScalar
         export MonetaryVariable, MonetaryScalar
         export DataSource
-        export DataFrequency, frequency, Annual, Quarterly, Monthly
+        export DataFrequency, frequency, Annual, Quarterly, Monthly, NAFrequency
         export DataSubject, subject, Household, Individual, Quantile
         export Currency, currency
         export RealCurrency, NominalCurrency
