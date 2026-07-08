@@ -329,14 +329,24 @@ Base.BroadcastStyle(::Broadcast.ArrayStyle{<:AbstractEconVariable}, ::Broadcast.
 
 # similar — only wrap result when ElType is numeric; otherwise fall back to plain Array
 function Base.similar(bc::Broadcast.Broadcasted{<:Broadcast.ArrayStyle{<:AbstractEconVariable}}, ::Type{ElType}, axes) where {ElType}
-    ElType <: Union{Missing, Real} || return similar(Array{ElType}, axes)
     v = find_econvar(bc)
     v === nothing && return similar(Array{ElType}, axes)
+
+    if v isa MonetaryVariable
+        # Monetary wrappers are preserved only for arithmetic broadcasts.
+        (ElType <: Union{Missing, Real}) || return similar(Array{ElType}, axes)
+        (ElType <: Bool) && return similar(Array{ElType}, axes)
+        is_monetary_arithmetic_broadcast(bc) || return similar(Array{ElType}, axes)
+    else
+        ElType <: Union{Missing, Real} || return similar(Array{ElType}, axes)
+    end
+
     return typeof(v).name.wrapper(similar(Array{ElType}, axes), characteristics(v)...)
 end
 Base.similar(bc::Broadcast.Broadcasted{<:Broadcast.ArrayStyle{<:AbstractEconVariable}}, ::Type{ElType}) where {ElType} = similar(bc, ElType, axes(bc))
 
 # Helper function to find an EconVariable in Broadcasted args
+find_econvar(::Any) = nothing
 find_econvar(v::AbstractEconVariable) = v
 find_econvar(arg::Base.Broadcast.Extruded) = find_econvar(arg.x)
 function find_econvar(bc::Base.Broadcast.Broadcasted)
@@ -347,6 +357,21 @@ function find_econvar(bc::Base.Broadcast.Broadcasted)
         end
     end
     return nothing
+end
+
+function is_monetary_arithmetic_broadcast(bc::Base.Broadcast.Broadcasted)
+    (bc.f === (+) || bc.f === (-) || bc.f === (*) || bc.f === (/) || bc.f === (^)) || return false
+    for arg in bc.args
+        if arg isa Base.Broadcast.Broadcasted
+            is_monetary_arithmetic_broadcast(arg) || return false
+        elseif arg isa Base.Broadcast.Extruded
+            x = arg.x
+            if x isa Base.Broadcast.Broadcasted
+                is_monetary_arithmetic_broadcast(x) || return false
+            end
+        end
+    end
+    return true
 end
 
 # Statistical functions that preserve metadata and return EconScalar

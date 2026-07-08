@@ -84,6 +84,17 @@ function test_monetaryvariable_broadcasting()
         v6 = @. v_mixed - (h_val - mortgage)
         @test v6 isa MonetaryVariable
         @test v6.data == [85.0, 180.0, 275.0]
+
+        # Predicate-style broadcasts should not preserve monetary metadata
+        b1 = isfinite.(v_mixed)
+        @test b1 isa AbstractVector{Bool}
+        @test !(b1 isa MonetaryVariable)
+        @test b1 == [true, true, true]
+
+        b2 = @. (20 <= v_mixed) & (v_mixed < 250)
+        @test b2 isa AbstractVector{Bool}
+        @test !(b2 isa MonetaryVariable)
+        @test b2 == [true, true, false]
     end
 end
 
