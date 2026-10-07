@@ -40,20 +40,20 @@ Base.lastindex(cpi::CPI) = length(cpi.values)
 
 # Compatibility methods
 list_compatible_monetary_variables(ef, cpi::CPI{<:Tg}; kwargs...) where {Tg} = list_compatible_monetary_variables(ef, Tg(); kwargs...)
-function assert_compatible(cpi::CPI, tg_ms::Tg_ms) where {Tg_ms<:GoodType}
+function assert_compatible(cpi::CPI, tg_ms::Tg_ms; do_warn::Bool=true) where {Tg_ms<:GoodType}
     tg_cpi = get_good_type(cpi)
     tg_cpi isa AnyGood && return nothing    # AnyGood CPI is compatible with all
     if tg_ms isa AnyGood
-        @warn("You are applying a CPI of type $(tg_cpi) to a good of type AnyGood, compatibility should be double-checked.")
+        do_warn && @warn("You are applying a CPI of type $(tg_cpi) to a good of type AnyGood, compatibility should be double-checked.")
     else
         @assert tg_cpi == Tg_ms "CPI is for goods of type $(tg_cpi), it cannot be applied on goods of type $(tg_ms)."
     end
     return nothing
 end
-assert_compatible(cpi::CPI, ms::MonetaryScalar) = assert_compatible(cpi, ms.good)
-assert_compatible(ms::MonetaryScalar, cpi::CPI) = assert_compatible(cpi, ms.good)
-assert_compatible(cpi::CPI, mv::MonetaryVariable) = assert_compatible(cpi, mv.good)
-assert_compatible(mv::MonetaryVariable, cpi::CPI) = assert_compatible(cpi, mv.good)
+assert_compatible(cpi::CPI, ms::MonetaryScalar; do_warn::Bool=true) = assert_compatible(cpi, ms.good; do_warn)
+assert_compatible(ms::MonetaryScalar, cpi::CPI; do_warn::Bool=true) = assert_compatible(cpi, ms.good; do_warn)
+assert_compatible(cpi::CPI, mv::MonetaryVariable; do_warn::Bool=true) = assert_compatible(cpi, mv.good; do_warn)
+assert_compatible(mv::MonetaryVariable, cpi::CPI; do_warn::Bool=true) = assert_compatible(cpi, mv.good; do_warn)
 
 
 
@@ -110,14 +110,15 @@ Convert nominal scalar to real value using a CPI index.
 - MonetaryScalar with real value (base date = new_base_date)
 """
 function to_real(
-    s::MonetaryScalar{T,Tf,Ts}, cpi::CPI, data_date, new_base_date::Union{Int, Date}
+    s::MonetaryScalar{T,Tf,Ts}, cpi::CPI, data_date, new_base_date::Union{Int, Date};
+    do_warn::Bool=true
 ) where {T,Tf,Ts}
     # Checks
     # - current currency is nominal
     current_curr = currency(s)
     current_curr isa NominalCurrency || throw(ArgumentError("MonetaryScalar must have NominalCurrency to convert to real"))
     # - compatibility
-    assert_compatible(cpi, s)
+    assert_compatible(cpi, s; do_warn)
     # Preparation
     rc = real_currency(current_curr, new_base_date)
     ref_cpi = cpi_index(cpi, new_base_date)
@@ -140,13 +141,13 @@ Convert real scalar back to nominal value using a CPI index.
 # Returns
 - MonetaryScalar with nominal value
 """
-function to_nominal(s::MonetaryScalar{T,Tf,Ts}, cpi::CPI, data_date::Union{Int,Date}) where {T,Tf,Ts}
+function to_nominal(s::MonetaryScalar{T,Tf,Ts}, cpi::CPI, data_date::Union{Int,Date}; do_warn::Bool=true) where {T,Tf,Ts}
     # Checks
     # - current currency is real
     current_curr = currency(s)
     current_curr isa RealCurrency || throw(ArgumentError("MonetaryScalar must have RealCurrency to convert to nominal"))
     # - compatibility
-    assert_compatible(cpi, s)
+    assert_compatible(cpi, s; do_warn)
     # Preparation
     nc = nominal_currency(current_curr)
     base_cpi = cpi_index(cpi, base_date(current_curr))
@@ -169,13 +170,13 @@ Change the base date of a real scalar.
 # Returns
 - MonetaryScalar with real value in new base date
 """
-function rebase(s::MonetaryScalar{T,Tf,Ts}, cpi::CPI, new_base_date::Union{Int, Date}) where {T,Tf,Ts}
+function rebase(s::MonetaryScalar{T,Tf,Ts}, cpi::CPI, new_base_date::Union{Int, Date}; do_warn::Bool=true) where {T,Tf,Ts}
     # Checks
     # - current currency is real
     current_curr = currency(s)
     current_curr isa RealCurrency || throw(ArgumentError("MonetaryScalar must have RealCurrency to rebase"))
     # - compatibility
-    assert_compatible(cpi, s)
+    assert_compatible(cpi, s; do_warn)
     # Preparation
     current_base = base_date(current_curr)
     current_base==new_base_date && return s  # No change needed
@@ -216,14 +217,15 @@ income_real = to_real(income_nominal, cpi, [1990, 1991, 1992, 1993, 1994], 1990)
 ```
 """
 function to_real(
-    v::MonetaryVariable{T,Tf,Ts}, cpi::CPI, data_date, new_base_date::Union{Int, Date}
+    v::MonetaryVariable{T,Tf,Ts}, cpi::CPI, data_date, new_base_date::Union{Int, Date};
+    do_warn::Bool=true
 ) where {T,Tf,Ts}
     # Checks
     # - current currency is nominal
     current_curr = currency(v)
     current_curr isa NominalCurrency || throw(ArgumentError("MonetaryVariable must have NominalCurrency to convert to real"))
     # - compatibility
-    assert_compatible(cpi, v)
+    assert_compatible(cpi, v; do_warn)
     # Preparation
     rc = real_currency(current_curr, new_base_date)
     # Deflate
@@ -244,13 +246,13 @@ Convert real values back to nominal values using a CPI index.
 # Returns
 - MonetaryVariable with nominal values
 """
-function to_nominal(v::MonetaryVariable{T,Tf,Ts}, cpi::CPI, data_dates::AbstractVector) where {T,Tf,Ts}
+function to_nominal(v::MonetaryVariable{T,Tf,Ts}, cpi::CPI, data_dates::AbstractVector; do_warn::Bool=true) where {T,Tf,Ts}
     # Checks
     # - current currency is real
     current_curr = currency(v)
     current_curr isa RealCurrency || throw(ArgumentError("MonetaryVariable must have RealCurrency to convert to nominal"))
     # - compatibility
-    assert_compatible(cpi, v)
+    assert_compatible(cpi, v; do_warn)
     # Preparation
     nc = nominal_currency(current_curr)
     bd = base_date(current_curr)
@@ -275,13 +277,13 @@ Change the base date of real values.
 # Returns
 - MonetaryVariable with real values in new base date
 """
-function rebase(v::MonetaryVariable{T,Tf,Ts}, cpi::CPI, new_base_date::Union{Int, Date}) where {T,Tf,Ts}
+function rebase(v::MonetaryVariable{T,Tf,Ts}, cpi::CPI, new_base_date::Union{Int, Date}; do_warn::Bool=true) where {T,Tf,Ts}
     # Checks
     # - current currency is real
     current_curr = currency(v)
     current_curr isa RealCurrency || throw(ArgumentError("MonetaryVariable must have RealCurrency to rebase"))
     # - compatibility
-    assert_compatible(cpi, v)
+    assert_compatible(cpi, v; do_warn)
     # Preparation
     current_base = base_date(current_curr)
     current_base==new_base_date && return v  # No change needed
